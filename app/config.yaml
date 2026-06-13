@@ -6,7 +6,7 @@ general:
   sample_interval: 300
   # Days of readings to keep in the database (events are kept forever).
   retention_days: 90
-  database: /home/pi/grow-data/grow.db
+  database: /home/db/grow-data/grow.db
   # Web UI listen address/port.
   host: 0.0.0.0
   port: 8080
