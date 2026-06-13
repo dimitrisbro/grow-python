@@ -3,3 +3,4 @@ pyyaml
 requests
 # Hardware drivers - only installable/needed on the Pi itself:
 # growhat
+# rpi-lgpio  (replaces RPi.GPIO on kernel 6.x / Pi OS Bookworm)

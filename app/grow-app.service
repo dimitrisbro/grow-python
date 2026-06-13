@@ -5,9 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/grow-python/app
-ExecStart=/usr/bin/python3 /home/pi/grow-python/app/main.py
+User=db
+WorkingDirectory=/home/db/Documents/grow-python/app
+ExecStart=/home/db/.virtualenvs/pimoroni/bin/python3 /home/db/Documents/grow-python/app/main.py
 Restart=on-failure
 RestartSec=10
 
