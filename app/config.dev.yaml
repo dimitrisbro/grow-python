@@ -1,0 +1,20 @@
+# Dev config for running off-Pi (mock hardware): local db, fast sampling
+# so charts fill up quickly. Run with: python3 main.py --config config.dev.yaml
+
+general:
+  sample_interval: 2
+  retention_days: 7
+  database: grow-dev.db
+  host: 127.0.0.1
+  port: 8080
+
+telegram:
+  enabled: false
+
+channels:
+  1:
+    name: "Monstera (mock)"
+  2:
+    name: "Basil (mock)"
+  3:
+    name: "Fern (mock)"

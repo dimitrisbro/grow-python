@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grow Monitor</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root { --green:#63ff7c; --yellow:#fedb52; --red:#f7003f; --blue:#1f89fb; }
+  body { font-family: system-ui, sans-serif; margin: 0; background:#10151c; color:#e8edf2; }
+  header { padding: 14px 20px; background:#161d27; display:flex; align-items:center; gap:10px; }
+  header h1 { font-size: 1.1rem; margin: 0; font-weight: 600; }
+  .mock { color: var(--yellow); font-size:.8rem; border:1px solid var(--yellow); border-radius:4px; padding:2px 6px; }
+  main { padding: 16px; max-width: 980px; margin: 0 auto; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; }
+  .card { background:#161d27; border-radius:10px; padding:14px 16px; }
+  .card h2 { margin:0 0 6px; font-size:1rem; }
+  .sat { font-size:2rem; font-weight:700; }
+  .meta { color:#8fa1b3; font-size:.8rem; margin-top:4px; }
+  .bar { height:8px; background:#243140; border-radius:4px; margin-top:8px; overflow:hidden; }
+  .bar div { height:100%; border-radius:4px; }
+  button { margin-top:10px; background:var(--blue); color:#fff; border:0; border-radius:6px; padding:7px 12px; cursor:pointer; font-size:.85rem; }
+  button:disabled { opacity:.5; cursor:wait; }
+  section { margin-top:24px; }
+  section h3 { font-size:.95rem; color:#8fa1b3; }
+  .controls { margin-bottom:8px; }
+  .controls a { color:var(--blue); margin-right:10px; cursor:pointer; text-decoration:none; }
+  .controls a.on { text-decoration:underline; }
+  #chartwrap { background:#161d27; border-radius:10px; padding:12px; }
+  table { width:100%; border-collapse:collapse; font-size:.85rem; }
+  td { padding:6px 8px; border-bottom:1px solid #243140; }
+  td.time { color:#8fa1b3; white-space:nowrap; }
+</style>
+</head>
+<body>
+<header><h1>🌱 Grow Monitor</h1><span id="mockbadge" class="mock" hidden>mock hardware</span></header>
+<main>
+  <div class="cards" id="cards"></div>
+
+  <section>
+    <h3>Moisture history</h3>
+    <div class="controls" id="ranges">
+      <a data-h="24" class="on">24h</a><a data-h="72">3d</a><a data-h="168">7d</a><a data-h="720">30d</a>
+    </div>
+    <div id="chartwrap"><canvas id="chart" height="110"></canvas></div>
+  </section>
+
+  <section>
+    <h3>Recent events</h3>
+    <table id="events"></table>
+  </section>
+</main>
+
+<script>
+const COLORS = ["#63ff7c", "#fedb52", "#1f89fb"];
+let hours = 24, chart, channels = [];
+
+function satColor(s, warn, water) {
+  if (s === null) return "#8fa1b3";
+  if (s < warn) return "var(--red)";
+  if (s < water) return "var(--yellow)";
+  return "var(--green)";
+}
+
+async function refreshStatus() {
+  const data = await (await fetch("/api/status")).json();
+  channels = data.channels;
+  document.getElementById("mockbadge").hidden = !data.mock;
+  const cards = document.getElementById("cards");
+  cards.innerHTML = "";
+  for (const ch of data.channels) {
+    const pct = ch.saturation === null ? "—" : Math.round(ch.saturation * 100) + "%";
+    const color = satColor(ch.saturation, ch.warn_level, ch.water_level);
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h2>${ch.name}</h2>
+      <div class="sat" style="color:${color}">${pct}</div>
+      <div class="bar"><div style="width:${(ch.saturation||0)*100}%;background:${color}"></div></div>
+      <div class="meta">${ch.active ? "sensor ok" : "⚠ sensor inactive"} ·
+        waters below ${Math.round(ch.water_level*100)}% ·
+        ${ch.ts ? "updated " + new Date(ch.ts*1000).toLocaleTimeString() : "no data yet"}</div>
+      <button onclick="waterNow(${ch.channel}, this)">💧 Water now</button>`;
+    cards.appendChild(card);
+  }
+}
+
+async function waterNow(channel, btn) {
+  btn.disabled = true; btn.textContent = "Watering…";
+  try {
+    const res = await (await fetch(`/api/water/${channel}`, {method: "POST"})).json();
+    btn.textContent = res.ok ? "Done ✓" : "Pump busy";
+  } catch { btn.textContent = "Error"; }
+  setTimeout(() => { btn.disabled = false; btn.textContent = "💧 Water now"; refreshAll(); }, 2000);
+}
+
+async function refreshChart() {
+  const datasets = [];
+  for (const ch of channels) {
+    const hist = await (await fetch(`/api/history/${ch.channel}?hours=${hours}`)).json();
+    datasets.push({
+      label: ch.name,
+      data: hist.map(p => ({x: p.ts * 1000, y: p.saturation * 100})),
+      borderColor: COLORS[(ch.channel - 1) % 3],
+      backgroundColor: "transparent",
+      pointRadius: 0, borderWidth: 2, tension: 0.3,
+    });
+  }
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById("chart"), {
+    type: "line",
+    data: {datasets},
+    options: {
+      animation: false,
+      scales: {
+        x: {type: "linear", ticks: {color:"#8fa1b3", maxTicksLimit: 8,
+             callback: v => new Date(v).toLocaleString([], {month:"short", day:"numeric", hour:"2-digit", minute:"2-digit"})},
+            grid: {color:"#243140"}},
+        y: {min: 0, max: 100, ticks: {color:"#8fa1b3", callback: v => v + "%"}, grid: {color:"#243140"}}
+      },
+      plugins: {legend: {labels: {color:"#e8edf2"}}}
+    }
+  });
+}
+
+const EVENT_LABELS = {
+  watering: "💧 Auto-watered", manual_watering: "💧 Manual watering",
+  low_moisture: "🌵 Low moisture alert", sensor_inactive: "⚠ Sensor inactive", info: "ℹ"
+};
+
+async function refreshEvents() {
+  const events = await (await fetch("/api/events")).json();
+  const table = document.getElementById("events");
+  table.innerHTML = events.map(e => {
+    const name = channels.find(c => c.channel === e.channel)?.name || "";
+    return `<tr><td class="time">${new Date(e.ts*1000).toLocaleString()}</td>
+      <td>${EVENT_LABELS[e.type] || e.type}</td><td>${name}</td><td>${e.detail || ""}</td></tr>`;
+  }).join("") || "<tr><td>No events yet</td></tr>";
+}
+
+document.getElementById("ranges").addEventListener("click", e => {
+  if (!e.target.dataset.h) return;
+  hours = +e.target.dataset.h;
+  document.querySelectorAll("#ranges a").forEach(a => a.classList.toggle("on", a === e.target));
+  refreshChart();
+});
+
+async function refreshAll() {
+  await refreshStatus();
+  await Promise.all([refreshChart(), refreshEvents()]);
+}
+refreshAll();
+setInterval(refreshAll, 60000);
+</script>
+</body>
+</html>

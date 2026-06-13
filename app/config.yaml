@@ -1,0 +1,66 @@
+# Grow App configuration.
+# Saturation values are 0.0 (bone dry) to 1.0 (fully wet).
+
+general:
+  # Seconds between sensor samples written to the database.
+  sample_interval: 300
+  # Days of readings to keep in the database (events are kept forever).
+  retention_days: 90
+  database: /home/pi/grow-data/grow.db
+  # Web UI listen address/port.
+  host: 0.0.0.0
+  port: 8080
+
+telegram:
+  enabled: false
+  # Create a bot with @BotFather, paste the token here.
+  bot_token: ""
+  # Send a message to your bot, then visit
+  # https://api.telegram.org/bot<TOKEN>/getUpdates to find your chat id.
+  chat_id: ""
+  # Minimum minutes between repeated low-moisture alerts per plant.
+  alert_cooldown_minutes: 360
+
+channels:
+  1:
+    name: "Plant 1"
+    enabled: true
+    # Sensor calibration, in pulses/sec (see calibrate instructions in README).
+    wet_point: 0.7
+    dry_point: 27.6
+    # Water automatically when saturation drops below this.
+    water_level: 0.3
+    # Alert via Telegram when saturation drops below this.
+    warn_level: 0.2
+    auto_water: true
+    pump_speed: 0.7
+    # Seconds the pump runs per dose.
+    pump_time: 0.7
+    # Minimum minutes between automatic waterings (lets water soak in).
+    watering_delay_minutes: 30
+    # Safety cap on automatic waterings per 24h.
+    max_waterings_per_day: 6
+  2:
+    name: "Plant 2"
+    enabled: true
+    wet_point: 0.7
+    dry_point: 27.6
+    water_level: 0.3
+    warn_level: 0.2
+    auto_water: true
+    pump_speed: 0.7
+    pump_time: 0.7
+    watering_delay_minutes: 30
+    max_waterings_per_day: 6
+  3:
+    name: "Plant 3"
+    enabled: true
+    wet_point: 0.7
+    dry_point: 27.6
+    water_level: 0.3
+    warn_level: 0.2
+    auto_water: true
+    pump_speed: 0.7
+    pump_time: 0.7
+    watering_delay_minutes: 30
+    max_waterings_per_day: 6

@@ -1,0 +1,5 @@
+flask
+pyyaml
+requests
+# Hardware drivers - only installable/needed on the Pi itself:
+# growhat

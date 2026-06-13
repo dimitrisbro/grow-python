@@ -1,0 +1,15 @@
+[Unit]
+Description=Grow HAT Mini monitor, waterer and web UI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/grow-python/app
+ExecStart=/usr/bin/python3 /home/pi/grow-python/app/main.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

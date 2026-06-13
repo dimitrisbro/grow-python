@@ -19,3 +19,9 @@ library/debian/
 .pytest_cache
 .tox
 .vscode/
+
+# app/ venv artifacts (venv created in-place rather than in .venv/)
+app/bin/
+app/lib/
+app/include/
+app/pyvenv.cfg
