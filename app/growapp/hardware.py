@@ -72,12 +72,18 @@ class Hardware:
                 self.sensors[channel] = sensor
                 self.pumps[channel] = MockPump(channel, sensor)
             else:
-                self.sensors[channel] = Moisture(
-                    channel=channel,
-                    wet_point=settings["wet_point"],
-                    dry_point=settings["dry_point"],
-                )
-                self.pumps[channel] = Pump(channel=channel)
+                try:
+                    self.sensors[channel] = Moisture(
+                        channel=channel,
+                        wet_point=settings["wet_point"],
+                        dry_point=settings["dry_point"],
+                    )
+                    self.pumps[channel] = Pump(channel=channel)
+                except RuntimeError as e:
+                    logger.warning("Channel %s hardware init failed (%s) - using mock", channel, e)
+                    sensor = MockSensor(channel, settings["wet_point"], settings["dry_point"])
+                    self.sensors[channel] = sensor
+                    self.pumps[channel] = MockPump(channel, sensor)
 
     def read(self, channel):
         """Return (saturation, pulses_per_sec, sensor_active) for a channel."""
