@@ -25,7 +25,7 @@ Assuming a fresh Raspberry Pi OS (Raspbian) with the Grow HAT Mini attached:
 # 1. Enable the interfaces the HAT needs
 sudo raspi-config nonint do_i2c 0
 sudo raspi-config nonint do_spi 0
-echo "dtoverlay=spi0-cs,cs0_pin=14" | sudo tee -a /boot/config.txt
+echo "dtoverlay=spi0-2cs,cs0_pin=14" | sudo tee -a /boot/firmware/config.txt
 sudo reboot
 
 # 2. Get the code and dependencies
