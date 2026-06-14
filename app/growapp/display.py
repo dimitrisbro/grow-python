@@ -108,7 +108,7 @@ class GrowDisplay:
             draw.rectangle((bx, BAR_TOP, bx + bw, BAR_BOTTOM), C_DIM)
 
             # Fill
-            if sat:
+            if sat is not None:
                 fill_h = int(BAR_H * min(sat, 1.0))
                 draw.rectangle((bx, BAR_BOTTOM - fill_h, bx + bw, BAR_BOTTOM), color)
 
@@ -121,6 +121,7 @@ class GrowDisplay:
                 draw.line((bx, ly, bx + bw, ly), line_color, width=1)
 
         self._disp.display(self._img)
+        logger.debug("Display rendered %d channels", len(channels))
 
     def _loop(self):
         while self._running:
