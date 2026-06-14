@@ -25,3 +25,6 @@ app/bin/
 app/lib/
 app/include/
 app/pyvenv.cfg
+
+# Local dev database
+*.db
