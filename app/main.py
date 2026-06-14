@@ -6,6 +6,7 @@ import pathlib
 from growapp.config import load_config
 from growapp.controller import Controller
 from growapp.database import Database
+from growapp.display import GrowDisplay
 from growapp.hardware import Hardware
 from growapp.notifier import TelegramNotifier
 from growapp.webapp import create_app
@@ -36,6 +37,10 @@ def main():
 
     controller = Controller(config, hardware, db, notifier)
     controller.start()
+
+    display = GrowDisplay(config, hardware)
+    display.start()
+
     notifier.send("🌱 Grow monitor started.")
 
     app = create_app(config, hardware, db, controller)

@@ -17,8 +17,9 @@
   .card h2 { margin:0 0 6px; font-size:1rem; }
   .sat { font-size:2rem; font-weight:700; }
   .meta { color:#8fa1b3; font-size:.8rem; margin-top:4px; }
-  .bar { height:8px; background:#243140; border-radius:4px; margin-top:8px; overflow:hidden; }
-  .bar div { height:100%; border-radius:4px; }
+  .bar { position:relative; height:14px; background:#243140; border-radius:4px; margin-top:8px; }
+  .bar .fill { height:100%; border-radius:4px; }
+  .bar .tmark { position:absolute; top:0; width:2px; height:100%; opacity:.9; border-radius:1px; }
   button { margin-top:10px; background:var(--blue); color:#fff; border:0; border-radius:6px; padding:7px 12px; cursor:pointer; font-size:.85rem; }
   button:disabled { opacity:.5; cursor:wait; }
   section { margin-top:24px; }
@@ -76,9 +77,13 @@ async function refreshStatus() {
     card.innerHTML = `
       <h2>${ch.name}</h2>
       <div class="sat" style="color:${color}">${pct}</div>
-      <div class="bar"><div style="width:${(ch.saturation||0)*100}%;background:${color}"></div></div>
+      <div class="bar">
+        <div class="fill" style="width:${(ch.saturation||0)*100}%;background:${color}"></div>
+        <div class="tmark" style="left:${ch.warn_level*100}%;background:var(--red)" title="Alert below ${Math.round(ch.warn_level*100)}%"></div>
+        <div class="tmark" style="left:${ch.water_level*100}%;background:var(--yellow)" title="Auto-water below ${Math.round(ch.water_level*100)}%"></div>
+      </div>
       <div class="meta">${ch.active ? "sensor ok" : "⚠ sensor inactive"} ·
-        waters below ${Math.round(ch.water_level*100)}% ·
+        🔴 alert &lt;${Math.round(ch.warn_level*100)}% · 🟡 water &lt;${Math.round(ch.water_level*100)}% ·
         ${ch.ts ? "updated " + new Date(ch.ts*1000).toLocaleTimeString() : "no data yet"}</div>
       <button onclick="waterNow(${ch.channel}, this)">💧 Water now</button>`;
     cards.appendChild(card);

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "grow-app-dev",
+      "runtimeExecutable": "/Users/dimitris/Documents/grow-python/app/bin/python3",
+      "runtimeArgs": ["app/main.py", "--config", "app/config.dev.yaml"],
+      "port": 8080
+    }
+  ]
+}
