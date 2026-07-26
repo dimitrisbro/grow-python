@@ -1,11 +1,16 @@
+import threading
 import time
+from datetime import timedelta
 
-import RPi.GPIO as GPIO
+import gpiod
+from gpiod.line import Edge
 
 MOISTURE_1_PIN = 23
 MOISTURE_2_PIN = 8
 MOISTURE_3_PIN = 25
 MOISTURE_INT_PIN = 4
+
+GPIO_CHIP = "/dev/gpiochip0"
 
 
 class Moisture(object):
@@ -14,7 +19,7 @@ class Moisture(object):
     def __init__(self, channel=1, wet_point=None, dry_point=None):
         """Create a new moisture sensor.
 
-        Uses an interrupt to count pulses on the GPIO pin corresponding to the selected channel.
+        Uses a libgpiod edge event to count pulses on the GPIO pin corresponding to the selected channel.
 
         The moisture reading is given as pulses per second.
 
@@ -24,10 +29,6 @@ class Moisture(object):
 
         """
         self._gpio_pin = [MOISTURE_1_PIN, MOISTURE_2_PIN, MOISTURE_3_PIN, MOISTURE_INT_PIN][channel - 1]
-
-        GPIO.setwarnings(False)
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self._gpio_pin, GPIO.IN)
 
         self._count = 0
         self._reading = 0
@@ -39,8 +40,17 @@ class Moisture(object):
         self._dry_point = dry_point if dry_point is not None else 27.6
         self._time_last_reading = time.time()
         try:
-            GPIO.add_event_detect(self._gpio_pin, GPIO.RISING, callback=self._event_handler, bouncetime=1)
-        except RuntimeError as e:
+            self._request = gpiod.request_lines(
+                GPIO_CHIP,
+                consumer=f"grow-moisture-{channel}",
+                config={
+                    self._gpio_pin: gpiod.LineSettings(
+                        edge_detection=Edge.RISING,
+                        debounce_period=timedelta(milliseconds=1),
+                    )
+                },
+            )
+        except OSError as e:
             if self._gpio_pin == 8:
                 raise RuntimeError("""Unable to set up edge detection on BCM8.
 
@@ -50,11 +60,19 @@ dtoverlay=spi0-cs,cs0_pin=14 # Re-assign CS0 from BCM 8 so that Grow can use it
 
 """)
             else:
-                raise e
+                raise RuntimeError(f"Unable to set up edge detection on BCM{self._gpio_pin}: {e}")
+
+        threading.Thread(target=self._watch, daemon=True).start()
 
         self._time_start = time.time()
 
-    def _event_handler(self, pin):
+    def _watch(self):
+        # Blocks until an edge event is available - no polling, no CPU cost while idle.
+        while True:
+            for _event in self._request.read_edge_events():
+                self._event_handler()
+
+    def _event_handler(self):
         self._count += 1
         self._last_pulse = time.time()
         if self._time_elapsed >= 1.0:

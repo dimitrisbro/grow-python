@@ -29,7 +29,8 @@ echo "dtoverlay=spi0-2cs,cs0_pin=14" | sudo tee -a /boot/firmware/config.txt
 sudo reboot
 
 # 2. Get the code and dependencies
-sudo apt install -y git python3-pip python3-yaml python3-flask python3-requests python3-rpi.gpio
+sudo apt install -y git python3-pip python3-yaml python3-flask python3-requests python3-rpi.gpio python3-libgpiod
+# If installing into a venv, create it with --system-site-packages so it can see python3-libgpiod
 git clone <your fork of this repo> /home/pi/grow-python
 cd /home/pi/grow-python
 sudo pip3 install .          # installs the growhat drivers from this repo

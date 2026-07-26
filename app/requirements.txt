@@ -3,4 +3,7 @@ pyyaml
 requests
 # Hardware drivers - only installable/needed on the Pi itself:
 # growhat
-# rpi-lgpio  (replaces RPi.GPIO on kernel 6.x / Pi OS Bookworm)
+# rpi-lgpio  (replaces RPi.GPIO on kernel 6.x / Pi OS Bookworm, used by the pump driver)
+# python3-libgpiod  (apt package, not pip - used by the moisture sensor driver for
+#                     real interrupt-driven edge events, avoiding rpi-lgpio's high-CPU
+#                     polling-based edge detection. Venv needs --system-site-packages.)
