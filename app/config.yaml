@@ -26,8 +26,8 @@ channels:
     name: "Plant 1"
     enabled: true
     # Sensor calibration, in pulses/sec (see calibrate instructions in README).
-    wet_point: 0.7
-    dry_point: 27.6
+    wet_point: 7.685
+    dry_point: 16.65
     # Water automatically when saturation drops below this.
     water_level: 0.3
     # Alert via Telegram when saturation drops below this.
@@ -43,8 +43,8 @@ channels:
   2:
     name: "Plant 2"
     enabled: true
-    wet_point: 0.7
-    dry_point: 27.6
+    wet_point: 6.3145
+    dry_point: 8.63
     water_level: 0.3
     warn_level: 0.2
     auto_water: true
@@ -55,8 +55,8 @@ channels:
   3:
     name: "Plant 3"
     enabled: true
-    wet_point: 0.7
-    dry_point: 27.6
+    wet_point: 8.256
+    dry_point: 17.65
     water_level: 0.3
     warn_level: 0.2
     auto_water: true
