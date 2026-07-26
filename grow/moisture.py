@@ -1,6 +1,5 @@
 import threading
 import time
-from datetime import timedelta
 
 import gpiod
 from gpiod.line import Edge
@@ -44,10 +43,7 @@ class Moisture(object):
                 GPIO_CHIP,
                 consumer=f"grow-moisture-{channel}",
                 config={
-                    self._gpio_pin: gpiod.LineSettings(
-                        edge_detection=Edge.RISING,
-                        debounce_period=timedelta(milliseconds=1),
-                    )
+                    self._gpio_pin: gpiod.LineSettings(edge_detection=Edge.RISING)
                 },
             )
         except OSError as e:
