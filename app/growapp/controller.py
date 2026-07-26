@@ -26,12 +26,13 @@ class Controller:
     def stop(self):
         self._stop.set()
 
-    def manual_water(self, channel):
+    def manual_water(self, channel, seconds=None):
         """Triggered from the web UI. Returns True if the dose ran."""
         settings = self.config["channels"][channel]
-        ok = self.hardware.dose(channel, settings["pump_speed"], settings["pump_time"])
+        pump_time = settings["pump_time"] if seconds is None else seconds
+        ok = self.hardware.dose(channel, settings["pump_speed"], pump_time)
         if ok:
-            self.db.add_event("manual_watering", channel, f"{settings['pump_time']}s @ speed {settings['pump_speed']}")
+            self.db.add_event("manual_watering", channel, f"{pump_time}s @ speed {settings['pump_speed']}")
             self.notifier.send(f"💧 {settings['name']}: watered manually from the dashboard.")
         return ok
 

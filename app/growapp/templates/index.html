@@ -85,6 +85,7 @@ async function refreshStatus() {
       <div class="meta">${ch.active ? "sensor ok" : "⚠ sensor inactive"} ·
         🔴 alert &lt;${Math.round(ch.warn_level*100)}% · 🟡 water &lt;${Math.round(ch.water_level*100)}% ·
         ${ch.ts ? "updated " + new Date(ch.ts*1000).toLocaleTimeString() : "no data yet"}</div>
+      <input type="number" id="sec-${ch.channel}" value="10" min="1" max="60" step="1" style="width:48px">s
       <button onclick="waterNow(${ch.channel}, this)">💧 Water now</button>`;
     cards.appendChild(card);
   }
@@ -92,8 +93,9 @@ async function refreshStatus() {
 
 async function waterNow(channel, btn) {
   btn.disabled = true; btn.textContent = "Watering…";
+  const seconds = document.getElementById(`sec-${channel}`).value || 10;
   try {
-    const res = await (await fetch(`/api/water/${channel}`, {method: "POST"})).json();
+    const res = await (await fetch(`/api/water/${channel}?seconds=${seconds}`, {method: "POST"})).json();
     btn.textContent = res.ok ? "Done ✓" : "Pump busy";
   } catch { btn.textContent = "Error"; }
   setTimeout(() => { btn.disabled = false; btn.textContent = "💧 Water now"; refreshAll(); }, 2000);

@@ -42,7 +42,9 @@ def create_app(config, hardware, db, controller):
     def water(channel):
         if channel not in hardware.pumps:
             return jsonify({"ok": False, "error": "unknown channel"}), 404
-        ok = controller.manual_water(channel)
+        seconds = request.args.get("seconds", default=10, type=float)
+        seconds = max(0.1, min(seconds, 60))
+        ok = controller.manual_water(channel, seconds)
         return jsonify({"ok": ok})
 
     return app
